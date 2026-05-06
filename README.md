@@ -2,7 +2,7 @@
 
 Session-based AI memory sync for Obsidian vaults used with local coding agents.
 
-It watches native conversation histories from:
+It reads native chat histories from:
 
 - Codex
 - Claude Code
@@ -15,18 +15,30 @@ and writes compact, auditable memory back into each vault as:
 - `40. Memory/daily/YYYY-MM-DD.md`
 - `40. Memory/Active Context.md`
 
-The goal is not to keep every raw transcript inside the vault. The goal is to preserve durable context, outcomes, open loops, and provenance so any agent can resume work from the vault itself.
+## Intended Model
 
-## What This Is For
+This repository is for development and distribution of the memory system.
 
-This project is meant for people who:
+Your vaults should remain independent installs:
+
+- no git repo connection is required inside a vault
+- no runtime dependency on the repo path is required after install
+- each vault gets its own local copy of the runtime scripts
+- updates are explicit: you choose when to refresh a vault from a newer package version
+
+That means:
+
+- the repo is the source of truth for future development
+- each vault is a self-contained deployed instance
+
+## What It Is For
+
+Use this if you:
 
 - work directly inside one or more Obsidian vaults with terminal agents
 - switch between Codex, Claude Code, Gemini CLI, and Opencode
 - want a shared vault-native memory layer instead of agent-specific chat silos
-- want automatic memory updates after a session ends or goes idle
-
-It is especially useful when each vault represents a different domain and should keep its own isolated memory.
+- want automatic memory updates after a chat ends or goes idle
 
 ## How It Works
 
@@ -50,62 +62,62 @@ In practice, a closed chat is usually captured about 1 to 4 minutes after its la
 - Gemini CLI: `~/.gemini/tmp/`
 - Opencode: `~/.local/share/opencode/`
 
-## Repository Layout
-
-```text
-agents-vault-memory/
-├── README.md
-├── LICENSE
-├── pyproject.toml
-└── src/agents_vault_memory/
-    ├── __init__.py
-    ├── bootstrap_memory_system.py
-    ├── install_memory_launch_agent.py
-    ├── local.obsidian-memory-sync.plist.template
-    ├── session_memory_parsers.py
-    └── session_memory_sync.py
-```
-
-## Requirements
-
-- Python `3.10+`
-- macOS if you want background automation via `launchd`
-- an Obsidian vault
-- local agent histories already present for one or more supported agents
-
 ## Installation
 
-### Option 1: Run Directly From the Repo
+`uv` is the recommended install method.
 
-Clone the repository and run the bootstrap script with Python:
+### Recommended: `uv tool install`
+
+Install directly from GitHub:
 
 ```bash
-git clone <your-repo-url>
-cd agents-vault-memory
-python3 src/agents_vault_memory/bootstrap_memory_system.py --target-vault "/path/to/Your Vault"
+uv tool install git+https://github.com/alvaroum/agents-vault-memory.git
 ```
 
-If you want reusable CLI commands, install it into a virtual environment:
+If needed, ensure the tool directory is on your `PATH`:
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+uv tool update-shell
+```
+
+### Alternative: `pip`
+
+```bash
+python3 -m pip install git+https://github.com/alvaroum/agents-vault-memory.git
+```
+
+### Optional: `pipx`
+
+If you use `pipx`, the equivalent install model also works:
+
+```bash
+pipx install git+https://github.com/alvaroum/agents-vault-memory.git
+```
+
+### Development Install
+
+If you want to work on the tool itself:
+
+```bash
+git clone https://github.com/alvaroum/agents-vault-memory.git
+cd agents-vault-memory
 python3 -m pip install -e .
 ```
 
-### Option 2: Install the CLI Commands
+## Commands
 
-After `pip install -e .`, these commands are available:
+After installation, these commands are available:
 
 ```bash
-agents-vault-memory-bootstrap --target-vault "/path/to/Your Vault"
-agents-vault-memory-sync --vault-root "/path/to/Your Vault"
-agents-vault-memory-install-launch-agent --vault-root "/path/to/Your Vault" --load
+agents-vault-memory-bootstrap
+agents-vault-memory-update
+agents-vault-memory-sync
+agents-vault-memory-install-launch-agent
 ```
 
 ## Quick Start
 
-### 1. Bootstrap a Vault
+### 1. Install into a Vault
 
 ```bash
 agents-vault-memory-bootstrap \
@@ -151,11 +163,57 @@ agents-vault-memory-install-launch-agent \
   --load
 ```
 
-### 4. Run a One-Shot Sync Manually
+### 4. Run a One-Shot Sync
 
 ```bash
 agents-vault-memory-sync --vault-root "/path/to/Your Vault"
 ```
+
+## Updating an Existing Vault
+
+Use the dedicated update command:
+
+```bash
+agents-vault-memory-update \
+  --target-vault "/path/to/Your Vault"
+```
+
+This refreshes the managed files in the target vault from the currently installed package version.
+
+If you also want to rerun backfill or reload the launch agent:
+
+```bash
+agents-vault-memory-update \
+  --target-vault "/path/to/Your Vault" \
+  --run-initial-sync \
+  --backfill-days 14 \
+  --load-launch-agent
+```
+
+## Updating the Installed Tool
+
+### With `uv`
+
+```bash
+uv tool upgrade agents-vault-memory
+```
+
+### With `pip`
+
+```bash
+python3 -m pip install --upgrade git+https://github.com/alvaroum/agents-vault-memory.git
+```
+
+### With `pipx`
+
+```bash
+pipx upgrade agents-vault-memory
+```
+
+Typical flow:
+
+1. Upgrade the installed tool.
+2. Run `agents-vault-memory-update --target-vault "/path/to/Your Vault"` for each vault you want to refresh.
 
 ## Multi-Vault Use
 
@@ -171,18 +229,6 @@ Each vault keeps its own:
 - `launchd` label
 
 The same machine can run one watcher per vault, as long as each launch agent uses a different label.
-
-## Updating an Existing Vault Install
-
-Re-run bootstrap with `--force`:
-
-```bash
-agents-vault-memory-bootstrap \
-  --target-vault "/path/to/Your Vault" \
-  --force
-```
-
-That refreshes the managed scripts and notes without requiring a manual reinstall.
 
 ## What Gets Stored in the Vault
 
@@ -209,17 +255,31 @@ Supported well:
 - automatic idle-based sync
 - shared memory across multiple agent frontends
 - macOS background automation
+- explicit install and update flows without repo-vault coupling
 
 Not yet implemented:
 
 - a true close hook for every agent frontend
 - first-class Linux service installers
 - first-class Windows service installers
+- Homebrew packaging
 
-## Notes
+## Repository Layout
 
-- Vault-local runtime copies are intentional. Each vault should remain usable by any agent even if the original repo is moved elsewhere.
-- The source of truth for the installer and sync logic should live in this repository, not be edited independently in each vault.
+```text
+agents-vault-memory/
+├── README.md
+├── LICENSE
+├── pyproject.toml
+└── src/agents_vault_memory/
+    ├── __init__.py
+    ├── bootstrap_memory_system.py
+    ├── install_memory_launch_agent.py
+    ├── local.obsidian-memory-sync.plist.template
+    ├── session_memory_parsers.py
+    ├── session_memory_sync.py
+    └── update_vault_install.py
+```
 
 ## License
 

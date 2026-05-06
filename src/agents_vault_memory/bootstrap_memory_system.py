@@ -125,6 +125,12 @@ This folder stores AI working memory in a session-based structure:
 - By default, the launch agent runs the watcher every `60s` and only processes sessions that have been idle for at least `180s`.
 - In practice, a closed chat is usually captured about 1 to 4 minutes after its last write.
 
+## Independence
+
+- This vault install is self-contained after installation.
+- It does not need to stay connected to the development repository.
+- To refresh this vault to a newer release, re-run the external installer against this vault.
+
 ## Commands
 
 One-shot sync:
@@ -287,6 +293,7 @@ def render_agents_block() -> str:
 - This watcher is idle-based, not a true close hook. By default it checks every `60s` and only processes sessions after `180s` of inactivity.
 - The launch agent installer is `40. Memory/scripts/install_memory_launch_agent.py`.
 - The replication installer for other vaults is `40. Memory/scripts/bootstrap_memory_system.py`.
+- Each vault is an independent install. The upstream repository is for future development and release management only.
 """
 
 
@@ -332,10 +339,8 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main() -> int:
-    args = build_parser().parse_args()
+def install_to_vault(args: argparse.Namespace) -> int:
     source_scripts = pathlib.Path(__file__).resolve().parent
-    source_vault = source_scripts.parent.parent
     target_vault = pathlib.Path(args.target_vault).expanduser().resolve()
     label = args.label or default_label(target_vault)
 
@@ -403,6 +408,11 @@ def main() -> int:
     else:
         print("No files were overwritten. Re-run with --force to refresh managed files.")
     return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
+    return install_to_vault(args)
 
 
 if __name__ == "__main__":

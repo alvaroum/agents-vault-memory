@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "agents-vault-memory"
-version = "0.1.0"
+version = "0.1.1"
 description = "Session-based AI memory sync for Obsidian vaults across Codex, Claude Code, Gemini CLI, and Opencode."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -23,6 +23,7 @@ classifiers = [
 
 [project.scripts]
 agents-vault-memory-bootstrap = "agents_vault_memory.bootstrap_memory_system:main"
+agents-vault-memory-update = "agents_vault_memory.update_vault_install:main"
 agents-vault-memory-sync = "agents_vault_memory.session_memory_sync:main"
 agents-vault-memory-install-launch-agent = "agents_vault_memory.install_memory_launch_agent:main"
 
