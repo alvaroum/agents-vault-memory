@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>local.obsidian-memory-sync</string>
+
+    <key>ProgramArguments</key>
+    <array>
+      <string>/usr/bin/python3</string>
+      <string>__VAULT_ROOT__/40. Memory/scripts/session_memory_sync.py</string>
+      <string>--vault-root</string>
+      <string>__VAULT_ROOT__</string>
+      <string>--watch</string>
+__EXTRA_ARGUMENTS__
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>__VAULT_ROOT__/40. Memory/state/session_memory_sync.stdout.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>__VAULT_ROOT__/40. Memory/state/session_memory_sync.stderr.log</string>
+  </dict>
+</plist>

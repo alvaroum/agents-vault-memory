@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agents-vault-memory"
+version = "0.1.0"
+description = "Session-based AI memory sync for Obsidian vaults across Codex, Claude Code, Gemini CLI, and Opencode."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+  { name = "Alvaro" }
+]
+keywords = ["obsidian", "ai", "memory", "codex", "claude", "gemini", "opencode"]
+classifiers = [
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Operating System :: MacOS",
+  "Topic :: Utilities",
+]
+
+[project.scripts]
+agents-vault-memory-bootstrap = "agents_vault_memory.bootstrap_memory_system:main"
+agents-vault-memory-sync = "agents_vault_memory.session_memory_sync:main"
+agents-vault-memory-install-launch-agent = "agents_vault_memory.install_memory_launch_agent:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+agents_vault_memory = ["local.obsidian-memory-sync.plist.template"]
