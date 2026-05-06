@@ -25,6 +25,7 @@ Your vaults should remain independent installs:
 - no runtime dependency on the repo path is required after install
 - each vault gets its own local copy of the runtime scripts
 - updates are explicit: you choose when to refresh a vault from a newer package version
+- optional agent hook integrations are installed separately at the user level and route events to the correct vault automatically
 
 That means:
 
@@ -113,6 +114,8 @@ agents-vault-memory-bootstrap
 agents-vault-memory-update
 agents-vault-memory-sync
 agents-vault-memory-install-launch-agent
+agents-vault-memory-install-hooks
+agents-vault-memory-hook-dispatch
 ```
 
 ## Quick Start
@@ -169,6 +172,33 @@ agents-vault-memory-install-launch-agent \
 agents-vault-memory-sync --vault-root "/path/to/Your Vault"
 ```
 
+### 5. Install Global Agent Hooks
+
+This is the close-hook layer.
+
+```bash
+agents-vault-memory-install-hooks
+```
+
+You can also install only a subset:
+
+```bash
+agents-vault-memory-install-hooks --agents claude gemini codex
+```
+
+What this configures:
+
+- Claude Code: `SessionEnd` hook
+- Gemini CLI: `SessionEnd` hook
+- Codex: `Stop` hook, because Codex currently exposes `Stop` rather than `SessionEnd`
+- OpenCode: global plugin listening to `session.idle`
+
+Important:
+
+- Claude and Gemini have true session-end lifecycle hooks.
+- Codex does not currently expose a true `SessionEnd` hook in the same way, so this package uses `Stop` as the closest automatic trigger.
+- OpenCode uses its plugin event system; the closest stable event for this workflow is `session.idle`.
+
 ## Updating an Existing Vault
 
 Use the dedicated update command:
@@ -214,6 +244,7 @@ Typical flow:
 
 1. Upgrade the installed tool.
 2. Run `agents-vault-memory-update --target-vault "/path/to/Your Vault"` for each vault you want to refresh.
+3. If hook behavior changed in the release, re-run `agents-vault-memory-install-hooks`.
 
 ## Multi-Vault Use
 
@@ -256,6 +287,7 @@ Supported well:
 - shared memory across multiple agent frontends
 - macOS background automation
 - explicit install and update flows without repo-vault coupling
+- close or near-close hook routing for supported agents
 
 Not yet implemented:
 
@@ -274,8 +306,11 @@ agents-vault-memory/
 └── src/agents_vault_memory/
     ├── __init__.py
     ├── bootstrap_memory_system.py
+    ├── hook_dispatch.py
+    ├── install_agent_hooks.py
     ├── install_memory_launch_agent.py
     ├── local.obsidian-memory-sync.plist.template
+    ├── registry.py
     ├── session_memory_parsers.py
     ├── session_memory_sync.py
     └── update_vault_install.py

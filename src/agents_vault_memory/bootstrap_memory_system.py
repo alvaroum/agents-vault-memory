@@ -11,10 +11,16 @@ import shutil
 import subprocess
 import sys
 
+try:
+    from agents_vault_memory.registry import register_vault
+except ImportError:
+    from registry import register_vault
+
 
 START_MARKER = "<!-- BEGIN AI MEMORY SYSTEM -->"
 END_MARKER = "<!-- END AI MEMORY SYSTEM -->"
 SCRIPT_FILES = [
+    "registry.py",
     "session_memory_sync.py",
     "session_memory_parsers.py",
     "install_memory_launch_agent.py",
@@ -156,6 +162,12 @@ Install this same memory system into another vault:
 ```bash
 python3 "40. Memory/scripts/bootstrap_memory_system.py" --target-vault "/path/to/Other Vault"
 ```
+
+Install global agent hooks from the packaged tool:
+
+```bash
+agents-vault-memory-install-hooks
+```
 """
 
 
@@ -294,6 +306,7 @@ def render_agents_block() -> str:
 - The launch agent installer is `40. Memory/scripts/install_memory_launch_agent.py`.
 - The replication installer for other vaults is `40. Memory/scripts/bootstrap_memory_system.py`.
 - Each vault is an independent install. The upstream repository is for future development and release management only.
+- Global agent hooks, when used, should be installed from the packaged tool and routed into this vault.
 """
 
 
@@ -365,6 +378,8 @@ def install_to_vault(args: argparse.Namespace) -> int:
     if not args.skip_agents:
         upsert_managed_block(target_vault / "AGENTS.md", render_agents_block())
         installed.append(target_vault / "AGENTS.md")
+
+    register_vault(target_vault)
 
     if args.run_initial_sync:
         sync_script = target_vault / "40. Memory/scripts/session_memory_sync.py"
